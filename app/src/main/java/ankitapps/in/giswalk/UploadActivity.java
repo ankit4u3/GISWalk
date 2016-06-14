@@ -52,10 +52,15 @@ public class UploadActivity extends Activity  implements LocationListener {
     DBHelper db;
     long totalSize = 0;
     String address;
+    String path1 = null;
+    String path2 = null;
+    String path3 = null;
     private ProgressBar progressBar;
     private String filePath = null;
     private TextView txtPercentage;
     private ImageView imgPreview;
+    private ImageView imgPreview2;
+    private ImageView imgPreview3;
     private VideoView vidPreview;
     private Button btnUpload;
     private TextView latituteField;
@@ -72,6 +77,8 @@ public class UploadActivity extends Activity  implements LocationListener {
         btnUpload = (Button) findViewById(R.id.btnUpload);
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
         imgPreview = (ImageView) findViewById(R.id.imgPreview);
+        imgPreview2 = (ImageView) findViewById(R.id.imageView2);
+        imgPreview3 = (ImageView) findViewById(R.id.imageView3);
         vidPreview = (VideoView) findViewById(R.id.videoPreview);
         db = new DBHelper(UploadActivity.this);
         // Changing action bar background color
@@ -83,8 +90,10 @@ public class UploadActivity extends Activity  implements LocationListener {
         Intent i = getIntent();
 
         // image or video path that is captured in previous activity
-        filePath = i.getStringExtra("filePath");
-
+        filePath = i.getStringExtra("path1");
+        path1 = i.getStringExtra("path1");
+        path2 = i.getStringExtra("path2");
+        //  path3 = i.getStringExtra("path3");
         // boolean flag to identify the media type, image or video
         boolean isImage = i.getBooleanExtra("isImage", true);
         if(i.getStringExtra("address")!=null) {
@@ -98,6 +107,22 @@ public class UploadActivity extends Activity  implements LocationListener {
         } else {
             Toast.makeText(getApplicationContext(),
                     "Sorry, file path is missing!", Toast.LENGTH_LONG).show();
+        }
+        if (path1 != null) {
+            // Displaying the image or video on the screen
+
+        } else {
+            Toast.makeText(getApplicationContext(),
+                    "Sorry, path 1 Not Found", Toast.LENGTH_LONG).show();
+        }
+
+
+        if (path2 != null) {
+            // Displaying the image or video on the screen
+
+        } else {
+            Toast.makeText(getApplicationContext(),
+                    "Sorry, path 2 Not Found", Toast.LENGTH_LONG).show();
         }
         latituteField = (TextView) findViewById(R.id.TextView02);
         longitudeField = (TextView) findViewById(R.id.TextView04);
@@ -162,7 +187,7 @@ public class UploadActivity extends Activity  implements LocationListener {
     private void previewMedia(boolean isImage) {
         // Checking whether captured media is image or video
         if (isImage) {
-            imgPreview.setVisibility(View.VISIBLE);
+            imgPreview.setVisibility(View.GONE);
             vidPreview.setVisibility(View.GONE);
             // bimatp factory
             BitmapFactory.Options options = new BitmapFactory.Options();
@@ -171,10 +196,18 @@ public class UploadActivity extends Activity  implements LocationListener {
             // images
             options.inSampleSize = 8;
 
-            final Bitmap bitmap = BitmapFactory.decodeFile(filePath, options);
+            final Bitmap bitmap = BitmapFactory.decodeFile(path1, options);
 
-            imgPreview.setImageBitmap(bitmap);
 
+            final Bitmap bitmap1 = BitmapFactory.decodeFile(path2, options);
+            //  final Bitmap bitmap2 = BitmapFactory.decodeFile(path2, options);
+
+
+            //  imgPreview.setImageBitmap(bitmap);
+            imgPreview2.setImageBitmap(bitmap1);
+            imgPreview2.setRotation(90f);
+            imgPreview3.setImageBitmap(bitmap);
+            imgPreview3.setRotation(90f);
         } else {
             imgPreview.setVisibility(View.GONE);
             vidPreview.setVisibility(View.VISIBLE);

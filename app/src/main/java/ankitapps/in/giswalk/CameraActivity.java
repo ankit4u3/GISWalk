@@ -50,6 +50,11 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
     TextView lat_txt;
     TextView long_txt;
     TextView accuracy_txt;
+    int imageCount=0;
+    String path1=null;
+    String path2=null;
+    String path3=null;
+    String newFile;
     private Uri fileUri; // file url to store image/video
     private Button btnCapturePicture, btnRecordVideo;
 
@@ -129,7 +134,28 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
                 // record video
                 //   recordVideo();
                 try {
-                    captureImage(v);
+                    if(imageCount==0)
+                    {
+                        lat_txt.setText("0/2 IMAGE ");
+                        btnRecordVideo.setText(" 1/2 IMAGE ");
+
+                        captureImage(v);
+
+                    }
+                    if(imageCount==1)
+                    {
+                        lat_txt.setText("1/2 IMAGE ");
+                        btnRecordVideo.setText(" 2/2 IMAGE");
+                        captureImage(v);
+
+                    }
+                    if(imageCount==2)
+                    {
+                        lat_txt.setText("2/2 IMAGE : GET GPS NOW");
+                        btnRecordVideo.setText("GET GPS");
+
+                    }
+
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -148,7 +174,7 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
 
         if(i.getStringExtra("address")!=null) {
             // image or video path that is captured in previous activity
-             address = i.getStringExtra("address");
+            address = i.getStringExtra("address");
             Toast.makeText(getApplicationContext(), "Your Default Location ID is  " + address, Toast.LENGTH_LONG).show();
             desc_txt.setText("Parent ID #" + address);
         }
@@ -157,6 +183,7 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
 
         }
         surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
+
 
         surfaceHolder = surfaceView.getHolder();
 
@@ -172,21 +199,55 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
             public void onPictureTaken(byte[] data, Camera camera) {
                 FileOutputStream outStream = null;
                 try {
-                    String newFile = String.format("/sdcard/%d.jpg", System.currentTimeMillis());
+                    newFile = String.format("/sdcard/%d.jpg", System.currentTimeMillis());
                     outStream = new FileOutputStream(newFile);
                     outStream.write(data);
                     outStream.close();
-                    setExif(newFile);
-                    launchUpload(newFile);
+                    //setExif(newFile);
+
+                    if(imageCount==0)
+                    {
+                        lat_txt.setText("0/2 IMAGE ");
+                        path1=newFile.trim();
+                        db.addRecordinglog(Integer.valueOf(address),newFile,"one",1);
+
+                        Toast.makeText(getApplicationContext(), "Picture Saved", Toast.LENGTH_SHORT).show();
+                        refreshCamera();
+                    }
+                    if(imageCount==1)
+                    {
+                        lat_txt.setText("1/2 IMAGE ");
+                        path2=newFile.trim();
+                        db.addRecordinglog(Integer.valueOf(address),newFile,"two",2);
+
+                        Toast.makeText(getApplicationContext(), "Picture Saved Stopping Camera", Toast.LENGTH_SHORT).show();
+                        refreshCamera();
+                        stopCamera();
+                        launchUpload();
+
+                    }
+                    if(imageCount==2)
+                    {
+                        lat_txt.setText("2/2 IMAGE : GET GPS NOW");
+
+                        launchUpload();
+
+                    }
+                    if(imageCount>=2)
+                    {
+
+                        stopCamera();
+                        launchUpload();
+                    }
+                    imageCount+=1;
+                  //  launchUpload(newFile);
                     Log.d("Log", "onPictureTaken - wrote bytes: " + data.length);
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                 } catch (IOException e) {
                     e.printStackTrace();
-                } finally {
                 }
-                Toast.makeText(getApplicationContext(), "Picture Saved", Toast.LENGTH_SHORT).show();
-                refreshCamera();
+
 
 
             }
@@ -194,11 +255,26 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
         refreshCamera();
     }
 
-    public void launchUpload(final String ufilepath) {
+//    public void launchUpload(final String ufilepath) {
+//        Intent i = new Intent(CameraActivity.this, UploadActivity.class);
+//        i.putExtra("filePath", ufilepath);
+//        i.putExtra("isImage", 1);
+//        i.putExtra("address", address);
+//        i.putExtra("path1", path1);
+//        i.putExtra("path2", path2);
+//        i.putExtra("path3", path3);
+//        //  db.addRecordinglog(Integer.valueOf(address),fileUri.getPath(),address,1000);
+//        startActivity(i);
+//    }
+
+    public void launchUpload() {
         Intent i = new Intent(CameraActivity.this, UploadActivity.class);
-        i.putExtra("filePath", ufilepath);
+        i.putExtra("filePath", path1);
         i.putExtra("isImage", 1);
-        i.putExtra("address", address);
+        i.putExtra("address", address );
+        i.putExtra("path1", path1);
+        i.putExtra("path2", path2);
+        i.putExtra("path3", path3);
         //  db.addRecordinglog(Integer.valueOf(address),fileUri.getPath(),address,1000);
         startActivity(i);
     }
@@ -252,9 +328,26 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
 
             camera.setPreviewDisplay(surfaceHolder);
             camera.startPreview();
+
         } catch (Exception e) {
 
         }
+    }
+
+    public void stopCamera() {
+        if (surfaceHolder.getSurface() == null) {
+            // preview surface does not exist
+            return;
+        }
+
+        // stop preview before making changes
+        try {
+            camera.stopPreview();
+        } catch (Exception e) {
+            // ignore: tried to stop a non-existent preview
+        }
+
+
     }
 
     public void surfaceChanged(SurfaceHolder holder, int format, int w, int h) {

@@ -43,6 +43,16 @@ public class DBHelper extends SQLiteOpenHelper {
     private static final String SQL_DELETE_ENTRIESLOG = "DROP TABLE IF EXISTS " + DBHelperItemLog.TABLE_NAME;
     private Context mContext;
 
+
+//    public int getTaskCount(long tasklist_id){
+//        SQLiteDatabase db = this.getWritableDatabase();
+//        Cursor cursor= db.rawQuery("SELECT COUNT (*) FROM " + TABLE_TODOTASK + " WHERE " + KEY_TASK_TASKLISTID + "=?", new String[] { String.valueOf(tasklist_id) });
+//        cursor.moveToFirst();
+//        int count= cursor.getInt(0);
+//        cursor.close();
+//        return count;
+//    }
+
     public DBHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
         mContext = context;
