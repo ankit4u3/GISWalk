@@ -38,23 +38,32 @@ import org.apache.http.util.EntityUtils;
 import java.io.File;
 import java.io.IOException;
 
+//import org.apache.http.HttpEntity;
+//import org.apache.http.HttpResponse;
+//import org.apache.http.client.ClientProtocolException;
+//import org.apache.http.client.HttpClient;
+//import org.apache.http.client.methods.HttpPost;
+//import org.apache.http.impl.client.DefaultHttpClient;
+//import org.apache.http.util.EntityUtils;
+
 public class UploadActivity extends Activity  implements LocationListener {
     // LogCat tag
     private static final String TAG = MainActivity.class.getSimpleName();
-
+    DBHelper db;
+    long totalSize = 0;
+    String address;
     private ProgressBar progressBar;
     private String filePath = null;
     private TextView txtPercentage;
     private ImageView imgPreview;
     private VideoView vidPreview;
     private Button btnUpload;
-    long totalSize = 0;
     private TextView latituteField;
     private TextView longitudeField;
     private TextView AccuracyField;
     private LocationManager locationManager;
     private String provider;
-    String address;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,7 +73,7 @@ public class UploadActivity extends Activity  implements LocationListener {
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
         imgPreview = (ImageView) findViewById(R.id.imgPreview);
         vidPreview = (VideoView) findViewById(R.id.videoPreview);
-
+        db = new DBHelper(UploadActivity.this);
         // Changing action bar background color
         //getActionBar().setBackgroundDrawable(
         //     new ColorDrawable(Color.parseColor(getResources().getString(
@@ -90,18 +99,33 @@ public class UploadActivity extends Activity  implements LocationListener {
             Toast.makeText(getApplicationContext(),
                     "Sorry, file path is missing!", Toast.LENGTH_LONG).show();
         }
+        latituteField = (TextView) findViewById(R.id.TextView02);
+        longitudeField = (TextView) findViewById(R.id.TextView04);
+        AccuracyField = (TextView) findViewById(R.id.TextView06);
+
 
         btnUpload.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
+
+                if (filePath != null) {
+
+                    //  db.addRecordinglog(Integer.valueOf(address),filePath,  "111", Integer.valueOf(AccuracyField.getText().toString()) );
+                    //    db.addRecordinglog(Integer.valueOf(address),filePath.trim(),"one",1000);
+                }
                 // uploading the file to server
+                try {
+
                 new UploadFileToServer().execute();
+
+                } catch (Exception ex) {
+                    showAlert(ex.getMessage());
+                }
+
             }
         });
-        latituteField = (TextView) findViewById(R.id.TextView02);
-        longitudeField = (TextView) findViewById(R.id.TextView04);
-        AccuracyField = (TextView) findViewById(R.id.TextView06);
+
 
         // Get the location manager
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
@@ -150,6 +174,7 @@ public class UploadActivity extends Activity  implements LocationListener {
             final Bitmap bitmap = BitmapFactory.decodeFile(filePath, options);
 
             imgPreview.setImageBitmap(bitmap);
+
         } else {
             imgPreview.setVisibility(View.GONE);
             vidPreview.setVisibility(View.VISIBLE);
@@ -160,8 +185,87 @@ public class UploadActivity extends Activity  implements LocationListener {
     }
 
     /**
-     * Uploading the file to server
+     * Method to show alert dialog
      * */
+    private void showAlert(String message) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(message).setTitle("Response from Servers")
+                .setCancelable(false)
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        // do nothing
+                    }
+                });
+        AlertDialog alert = builder.create();
+        alert.show();
+    }
+
+    /* Request updates at startup */
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        locationManager.requestLocationUpdates(provider, 400, 1, this);
+    }
+
+    /* Remove the locationlistener updates when Activity is paused */
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        locationManager.removeUpdates(this);
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        double lat = location.getLatitude();
+        double lng = location.getLongitude();
+        String accuracy = String.valueOf(location.getAccuracy());
+        latituteField.setText(String.valueOf(lat));
+        longitudeField.setText(String.valueOf(lng));
+        AccuracyField.setText(accuracy);
+    }
+
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void onProviderEnabled(String provider) {
+        Toast.makeText(this, "Enabled new provider " + provider,
+                Toast.LENGTH_SHORT).show();
+
+    }
+
+    @Override
+    public void onProviderDisabled(String provider) {
+        Toast.makeText(this, "Disabled provider " + provider,
+                Toast.LENGTH_SHORT).show();
+    }
+
+    /**
+     * Uploading the file to server
+     */
     private class UploadFileToServer extends AsyncTask<Void, Integer, String> {
         @Override
         protected void onPreExecute() {
@@ -250,83 +354,5 @@ public class UploadActivity extends Activity  implements LocationListener {
             super.onPostExecute(result);
         }
 
-    }
-
-    /**
-     * Method to show alert dialog
-     * */
-    private void showAlert(String message) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setMessage(message).setTitle("Response from Servers")
-                .setCancelable(false)
-                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        // do nothing
-                    }
-                });
-        AlertDialog alert = builder.create();
-        alert.show();
-    }
-    /* Request updates at startup */
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
-        }
-        locationManager.requestLocationUpdates(provider, 400, 1, this);
-    }
-
-    /* Remove the locationlistener updates when Activity is paused */
-    @Override
-    protected void onPause() {
-        super.onPause();
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
-        }
-        locationManager.removeUpdates(this);
-    }
-
-    @Override
-    public void onLocationChanged(Location location) {
-        double lat = (double) (location.getLatitude());
-        double lng = (double) (location.getLongitude());
-        String accuracy=String.valueOf(location.getAccuracy());
-        latituteField.setText(String.valueOf(lat ));
-        longitudeField.setText(String.valueOf(lng ));
-        AccuracyField.setText(accuracy);
-    }
-
-    @Override
-    public void onStatusChanged(String provider, int status, Bundle extras) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void onProviderEnabled(String provider) {
-        Toast.makeText(this, "Enabled new provider " + provider,
-                Toast.LENGTH_SHORT).show();
-
-    }
-
-    @Override
-    public void onProviderDisabled(String provider) {
-        Toast.makeText(this, "Disabled provider " + provider,
-                Toast.LENGTH_SHORT).show();
     }
 }

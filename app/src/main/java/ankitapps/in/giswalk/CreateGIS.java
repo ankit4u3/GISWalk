@@ -16,30 +16,26 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class CreateGIS extends AppCompatActivity {
-    private GridView gridView;
+    public static final String FIRST_COLUMN = "First";
+    public static final String SECOND_COLUMN = "Second";
+    public static final String THIRD_COLUMN = "Third";
+    public static final String FOURTH_COLUMN = "Fourth";
+    ////////////////////
+    public static ArrayList<String> ArrayofName = new ArrayList<String>();
+    public ArrayList<HashMap<String, String>> list;
+    ///////////////////////
     EditText localtion;
     EditText description;
     EditText autoId;
     Button bSave;
-
     DBHelper db;
-    ///////////////////////
-
-    public ArrayList<HashMap<String, String>> list;
     Activity activity;
     TextView txtFirst;
     TextView txtSecond;
     TextView txtThird;
     TextView txtFourth;
+    private GridView gridView;
 
-    public static final String FIRST_COLUMN="First";
-    public static final String SECOND_COLUMN="Second";
-    public static final String THIRD_COLUMN="Third";
-    public static final String FOURTH_COLUMN="Fourth";
-
-
-    ////////////////////
-    public static ArrayList<String> ArrayofName = new ArrayList<String>();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,7 +49,7 @@ public class CreateGIS extends AppCompatActivity {
 
         db=new DBHelper(CreateGIS.this);
         int nextId=db.getCount();
-        autoId.setText(String.valueOf(nextId++));
+        autoId.setText(String.valueOf(++nextId));
 
 
         gridView = (GridView) findViewById(R.id.gridView);
@@ -69,7 +65,7 @@ public class CreateGIS extends AppCompatActivity {
                 localtion.setText("");
                 description.setText("");
                 int nextId=db.getCount();
-                autoId.setText(String.valueOf(nextId++));
+                autoId.setText(String.valueOf(++nextId));
                 //setGrid();
                 setList();
             }

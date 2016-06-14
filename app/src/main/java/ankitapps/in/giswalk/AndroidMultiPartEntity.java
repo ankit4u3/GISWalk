@@ -4,6 +4,7 @@ package ankitapps.in.giswalk;
  * Created by Chaurasia on 6/10/2016.
  */
 
+
 import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntity;
 
@@ -41,7 +42,7 @@ public class AndroidMultiPartEntity extends MultipartEntity
         super.writeTo(new CountingOutputStream(outstream, this.listener));
     }
 
-    public static interface ProgressListener {
+    public interface ProgressListener {
         void transferred(long num);
     }
 

@@ -9,6 +9,11 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
+    <uses-feature android:name="android.hardware.camera" />
+    <uses-feature android:name="android.hardware.camera.autofocus" />
 
     <application
         android:allowBackup="true"
@@ -25,10 +30,12 @@
         </activity>
         <activity android:name=".CameraActivity" />
         <activity android:name=".UploadActivity" />
-        <activity android:name=".DBHelper" />
+
         <activity android:name=".CreateGIS" />
         <activity android:name=".ListEntry" />
-        <activity android:name=".SavedLog"></activity>
+        <activity android:name=".SavedLog" />
+
+
     </application>
 
 </manifest>

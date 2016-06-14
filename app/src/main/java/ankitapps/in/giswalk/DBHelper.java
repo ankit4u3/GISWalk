@@ -15,41 +15,13 @@ import java.util.HashMap;
  * Created by Daniel on 12/29/2014.
  */
 public class DBHelper extends SQLiteOpenHelper {
-    private Context mContext;
-
-    private static final String LOG_TAG = "DBHelper";
-
-
     public static final String DATABASE_NAME = "saved_recordings.db";
-    private static final int DATABASE_VERSION = 1;
-
-    public static abstract class DBHelperItem implements BaseColumns {
-        public static final String TABLE_NAME = "saved_recordings";
-
-        public static final String COLUMN_NAME_RECORDING_NAME = "recording_name";
-        public static final String COLUMN_NAME_RECORDING_FILE_PATH = "file_path";
-        public static final String COLUMN_NAME_RECORDING_LENGTH = "length";
-        public static final String COLUMN_NAME_TIME_ADDED = "time_added";
-    }
-
-    public static abstract class DBHelperItemLog implements BaseColumns {
-        public static final String TABLE_NAME = "saved_recordingslogs";
-
-        public static final String COLUMN_NAME_RECORDING_NAME = "recording_name";
-        public static final String COLUMN_NAME_RECORDING_FILE_PATH = "file_path";
-        public static final String COLUMN_NAME_RECORDING_LENGTH = "length";
-        public static final String COLUMN_NAME_TIME_ADDED = "time_added";
-    }
     public static final String FIRST_COLUMN="First";
     public static final String SECOND_COLUMN="Second";
     public static final String THIRD_COLUMN="Third";
     public static final String FOURTH_COLUMN="Fourth";
-
-
-
-
-
-
+    private static final String LOG_TAG = "DBHelper";
+    private static final int DATABASE_VERSION = 1;
     private static final String TEXT_TYPE = " TEXT";
     private static final String COMMA_SEP = ",";
     private static final String SQL_CREATE_ENTRIES =
@@ -64,12 +36,17 @@ public class DBHelper extends SQLiteOpenHelper {
                     DBHelperItem._ID + " INTEGER  " + COMMA_SEP +
                     DBHelperItem.COLUMN_NAME_RECORDING_NAME + TEXT_TYPE + COMMA_SEP +
                     DBHelperItem.COLUMN_NAME_RECORDING_FILE_PATH + TEXT_TYPE + COMMA_SEP +
-                    DBHelperItem.COLUMN_NAME_RECORDING_LENGTH + " INTEGER " + COMMA_SEP +
+                    DBHelperItem.COLUMN_NAME_RECORDING_LENGTH + TEXT_TYPE + COMMA_SEP +
                     DBHelperItem.COLUMN_NAME_TIME_ADDED + " INTEGER " + ")";
-
     @SuppressWarnings("unused")
     private static final String SQL_DELETE_ENTRIES = "DROP TABLE IF EXISTS " + DBHelperItem.TABLE_NAME;
     private static final String SQL_DELETE_ENTRIESLOG = "DROP TABLE IF EXISTS " + DBHelperItemLog.TABLE_NAME;
+    private Context mContext;
+
+    public DBHelper(Context context) {
+        super(context, DATABASE_NAME, null, DATABASE_VERSION);
+        mContext = context;
+    }
 
     @Override
     public void onCreate(SQLiteDatabase db) {
@@ -81,13 +58,6 @@ public class DBHelper extends SQLiteOpenHelper {
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 
     }
-
-    public DBHelper(Context context) {
-        super(context, DATABASE_NAME, null, DATABASE_VERSION);
-        mContext = context;
-    }
-
-
 
     public RecordingItem getItemAt(int position) {
         SQLiteDatabase db = getReadableDatabase();
@@ -203,14 +173,6 @@ public class DBHelper extends SQLiteOpenHelper {
         return mContext;
     }
 
-    public class RecordingComparator implements Comparator<RecordingItem> {
-        public int compare(RecordingItem item1, RecordingItem item2) {
-            Long o1 = item1.getTime();
-            Long o2 = item2.getTime();
-            return o2.compareTo(o1);
-        }
-    }
-
     public long addRecording(String recordingName, String filePath, long length) {
 
         SQLiteDatabase db = getWritableDatabase();
@@ -263,5 +225,31 @@ public class DBHelper extends SQLiteOpenHelper {
         long rowId = db.insert(DBHelperItem.TABLE_NAME, null, cv);
 
         return rowId;
+    }
+
+    public static abstract class DBHelperItem implements BaseColumns {
+        public static final String TABLE_NAME = "saved_recordings";
+
+        public static final String COLUMN_NAME_RECORDING_NAME = "recording_name";
+        public static final String COLUMN_NAME_RECORDING_FILE_PATH = "file_path";
+        public static final String COLUMN_NAME_RECORDING_LENGTH = "length";
+        public static final String COLUMN_NAME_TIME_ADDED = "time_added";
+    }
+
+    public static abstract class DBHelperItemLog implements BaseColumns {
+        public static final String TABLE_NAME = "saved_recordingslogs";
+
+        public static final String COLUMN_NAME_RECORDING_NAME = "recording_name";
+        public static final String COLUMN_NAME_RECORDING_FILE_PATH = "file_path";
+        public static final String COLUMN_NAME_RECORDING_LENGTH = "length";
+        public static final String COLUMN_NAME_TIME_ADDED = "time_added";
+    }
+
+    public class RecordingComparator implements Comparator<RecordingItem> {
+        public int compare(RecordingItem item1, RecordingItem item2) {
+            Long o1 = item1.getTime();
+            Long o2 = item2.getTime();
+            return o2.compareTo(o1);
+        }
     }
 }

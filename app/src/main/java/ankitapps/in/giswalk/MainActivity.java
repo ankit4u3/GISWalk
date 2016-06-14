@@ -13,25 +13,14 @@ public class MainActivity extends AppCompatActivity  {
     DBHelper db;
     GridView grid;
     String[] web = {
-            "Capture",
-            "Calibrate",
-            "Settings",
-            "GPS",
-            "Database",
+
             "List",
-            "Wallet",
             "Create",
             "ImageLog"
 
 
     } ;
     int[] imageId = {
-            R.drawable.splash_img,
-            R.drawable.splash_img,
-            R.drawable.splash_img,
-            R.drawable.splash_img,
-            R.drawable.splash_img,
-            R.drawable.splash_img,
             R.drawable.splash_img,
             R.drawable.splash_img,
             R.drawable.splash_img
