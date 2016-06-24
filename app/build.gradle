@@ -10,6 +10,7 @@ android {
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
+
     }
     buildTypes {
         release {
@@ -18,22 +19,13 @@ android {
         }
     }
 
+
 }
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     testCompile 'junit:junit:4.12'
     compile 'com.android.support:appcompat-v7:23.4.0'
-    // compile ('org.apache.httpcomponents:httpmime:4.3.5') {
-    // avoid "is ignored for the default configuration X" warnings
-    // since httpclient is included in the android SDK.
-    //    exclude group: 'org.apache.httpcomponents', module: 'httpclient'
-    // }
-    //
-    compile group: 'org.apache.httpcomponents', name: 'httpclient-android', version: '4.3.5.1'
-    compile('org.apache.httpcomponents:httpmime:4.3') {
-        exclude module: "httpclient"
-    }
-    // compile files('libs/httpclient-android-4.3.5.1.jar')
-    compile files('libs/org.jbundle.util.osgi.wrapped.org.apache.http.client-4.1.2.jar')
+    compile 'net.gotev:uploadservice:2.1'
+    compile 'net.gotev:uploadservice-okhttp:2.1'
 }

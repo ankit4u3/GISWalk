@@ -277,6 +277,7 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
         i.putExtra("path3", path3);
         //  db.addRecordinglog(Integer.valueOf(address),fileUri.getPath(),address,1000);
         startActivity(i);
+        this.finish();
     }
 
     public void setExif(final String filePath) {

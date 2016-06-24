@@ -13,8 +13,9 @@ import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.os.AsyncTask;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 import android.view.View;
@@ -25,18 +26,28 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.VideoView;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.mime.content.FileBody;
-import org.apache.http.entity.mime.content.StringBody;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.util.EntityUtils;
+import net.gotev.uploadservice.MultipartUploadRequest;
+import net.gotev.uploadservice.UploadNotificationConfig;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.KeySpec;
+
+import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.PBEKeySpec;
+import javax.crypto.spec.SecretKeySpec;
 
 //import org.apache.http.HttpEntity;
 //import org.apache.http.HttpResponse;
@@ -49,6 +60,8 @@ import java.io.IOException;
 public class UploadActivity extends Activity  implements LocationListener {
     // LogCat tag
     private static final String TAG = MainActivity.class.getSimpleName();
+    static SecretKey yourKey = null;
+    private static String algorithm = "AES";
     DBHelper db;
     long totalSize = 0;
     String address;
@@ -68,6 +81,238 @@ public class UploadActivity extends Activity  implements LocationListener {
     private TextView AccuracyField;
     private LocationManager locationManager;
     private String provider;
+    private String encryptedFileName = "Enc_File.txt";
+
+    /**
+     * Uploading the file to server
+     */
+//    private class UploadFileToServer extends AsyncTask<Void, Integer, String> {
+//        @Override
+//        protected void onPreExecute() {
+//            // setting progress bar to zero
+//            progressBar.setProgress(0);
+//            super.onPreExecute();
+//        }
+//
+//        @Override
+//        protected void onProgressUpdate(Integer... progress) {
+//            // Making progress bar visible
+//            progressBar.setVisibility(View.VISIBLE);
+//
+//            // updating progress bar value
+//            progressBar.setProgress(progress[0]);
+//
+//            // updating percentage value
+//            txtPercentage.setText(String.valueOf(progress[0]) + "%");
+//        }
+//
+//        @Override
+//        protected String doInBackground(Void... params) {
+//            return uploadFile();
+//        }
+//
+//        @SuppressWarnings("deprecation")
+//        private String uploadFile() {
+//            String responseString = null;
+//
+//            HttpClient httpclient = new DefaultHttpClient();
+//            HttpPost httppost = new HttpPost(Config.FILE_UPLOAD_URL);
+//
+//            try {
+//                AndroidMultiPartEntity entity = new AndroidMultiPartEntity(
+//                        new AndroidMultiPartEntity.ProgressListener() {
+//
+//                            @Override
+//                            public void transferred(long num) {
+//                                publishProgress((int) ((num / (float) totalSize) * 100));
+//                            }
+//                        });
+//
+//                File sourceFile = new File(filePath);
+//
+//                // Adding file data to http body
+//                entity.addPart("image", new FileBody(sourceFile));
+//
+//                // Extra parameters if you want to pass to server
+//                entity.addPart("website",
+//                        new StringBody("www.sos.org.in"));
+//                entity.addPart("email", new StringBody("support@sos.org.in"));
+//
+//                totalSize = entity.getContentLength();
+//                httppost.setEntity(entity);
+//
+//                // Making server call
+//                HttpResponse response = httpclient.execute(httppost);
+//                HttpEntity r_entity = response.getEntity();
+//
+//                int statusCode = response.getStatusLine().getStatusCode();
+//                if (statusCode == 200) {
+//                    // Server response
+//                    responseString = EntityUtils.toString(r_entity);
+//                } else {
+//                    responseString = "Error occurred! Http Status Code: "
+//                            + statusCode;
+//                }
+//
+//            } catch (ClientProtocolException e) {
+//                responseString = e.toString();
+//            } catch (IOException e) {
+//                responseString = e.toString();
+//            }
+//
+//            return responseString;
+//
+//        }
+//
+//        @Override
+//        protected void onPostExecute(String result) {
+//            Log.e(TAG, "Response from server: " + result);
+//
+//            // showing the server response in an alert dialog
+//            showAlert(result);
+//
+//            super.onPostExecute(result);
+//        }
+//
+//    }
+//    public static byte[] generateKey(String password) throws Exception
+//    {
+//        byte[] keyStart = password.getBytes("UTF-8");
+//
+//        KeyGenerator kgen = KeyGenerator.getInstance("AES");
+//        SecureRandom sr = SecureRandom.getInstance("SHA1PRNG", "Crypto");
+//        sr.setSeed(keyStart);
+//        kgen.init(128, sr);
+//        SecretKey skey = kgen.generateKey();
+//        return skey.getEncoded();
+//    }
+//
+//    public static byte[] encodeFile(byte[] key, byte[] fileData) throws Exception
+//    {
+//
+//        SecretKeySpec skeySpec = new SecretKeySpec(key, "AES");
+//        Cipher cipher = Cipher.getInstance("AES");
+//        cipher.init(Cipher.ENCRYPT_MODE, skeySpec);
+//
+//        byte[] encrypted = cipher.doFinal(fileData);
+//
+//        return encrypted;
+//    }
+//
+//    public static byte[] decodeFile(byte[] key, byte[] fileData) throws Exception
+//    {
+//        SecretKeySpec skeySpec = new SecretKeySpec(key, "AES");
+//        Cipher cipher = Cipher.getInstance("AES");
+//        cipher.init(Cipher.DECRYPT_MODE, skeySpec);
+//
+//        byte[] decrypted = cipher.doFinal(fileData);
+//
+//        return decrypted;
+//    }
+
+//    File file = new File(Environment.getExternalStorageDirectory() + File.separator + "your_folder_on_sd", "file_name");
+//    BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(file));
+//    byte[] yourKey = generateKey("password");
+//    byte[] filesBytes = encodeFile(yourKey, yourByteArrayContainigDataToEncrypt);
+//    bos.write(fileBytes);
+//    bos.flush();
+//    bos.close();
+//
+//    byte[] yourKey = generateKey("password");
+//    byte[] decodedData = decodeFile(yourKey, bytesOfYourFile);
+    public static SecretKey generateKey(char[] passphraseOrPin, byte[] salt) throws NoSuchAlgorithmException, InvalidKeySpecException {
+        // Number of PBKDF2 hardening rounds to use. Larger values increase
+        // computation time. You should select a value that causes computation
+        // to take >100ms.
+        final int iterations = 1000;
+
+        // Generate a 256-bit key
+        final int outputKeyLength = 256;
+
+        SecretKeyFactory secretKeyFactory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
+        KeySpec keySpec = new PBEKeySpec(passphraseOrPin, salt, iterations, outputKeyLength);
+        SecretKey secretKey = secretKeyFactory.generateSecret(keySpec);
+        return secretKey;
+    }
+
+    public static SecretKey generateKey() throws NoSuchAlgorithmException {
+        // Generate a 256-bit key
+        final int outputKeyLength = 256;
+        SecureRandom secureRandom = new SecureRandom();
+        // Do *not* seed secureRandom! Automatically seeded from system entropy.
+        KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
+        keyGenerator.init(outputKeyLength, secureRandom);
+        yourKey = keyGenerator.generateKey();
+        return yourKey;
+    }
+
+    public static byte[] encodeFile(SecretKey yourKey, byte[] fileData)
+            throws Exception {
+        byte[] encrypted = null;
+        byte[] data = yourKey.getEncoded();
+        SecretKeySpec skeySpec = new SecretKeySpec(data, 0, data.length,
+                algorithm);
+        Cipher cipher = Cipher.getInstance(algorithm);
+        cipher.init(Cipher.ENCRYPT_MODE, skeySpec, new IvParameterSpec(
+                new byte[cipher.getBlockSize()]));
+        encrypted = cipher.doFinal(fileData);
+        return encrypted;
+    }
+
+//
+//    public void encrypt(final String tempFile)
+//    {
+//            File file = new File(tempFile);
+//        BufferedOutputStream bos = null;
+//        try {
+//            bos = new BufferedOutputStream(new FileOutputStream(file));
+//            byte[] yourKey = generateKey("password");
+//            byte fileContent[] = new byte[(int)file.length()];
+//
+//            byte[] filesBytes = encodeFile(yourKey, fileContent);
+//            bos.write(filesBytes);
+//            bos.flush();
+//            bos.close();
+//        } catch (FileNotFoundException e) {
+//            e.printStackTrace();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//
+//    }
+//    public byte[] readFile(final String path) {
+//        byte[] contents = null;
+//
+//        File file = new File(Environment.getExternalStorageDirectory()
+//                + File.separator, path);
+//        int size = (int) file.length();
+//        contents = new byte[size];
+//        try {
+//            BufferedInputStream buf = new BufferedInputStream(
+//                    new FileInputStream(file));
+//            try {
+//                buf.read(contents);
+//                buf.close();
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//        } catch (FileNotFoundException e) {
+//            e.printStackTrace();
+//        }
+//        return contents;
+//    }
+
+    public static byte[] decodeFile(SecretKey yourKey, byte[] fileData)
+            throws Exception {
+        byte[] decrypted = null;
+        Cipher cipher = Cipher.getInstance(algorithm);
+        cipher.init(Cipher.DECRYPT_MODE, yourKey, new IvParameterSpec(
+                new byte[cipher.getBlockSize()]));
+        decrypted = cipher.doFinal(fileData);
+        return decrypted;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -141,8 +386,7 @@ public class UploadActivity extends Activity  implements LocationListener {
                 }
                 // uploading the file to server
                 try {
-
-                new UploadFileToServer().execute();
+                    uploadMultipart(getApplicationContext(), filePath);
 
                 } catch (Exception ex) {
                     showAlert(ex.getMessage());
@@ -151,7 +395,8 @@ public class UploadActivity extends Activity  implements LocationListener {
             }
         });
 
-
+        // btnUpload.setEnabled(false);
+        checkNetworkStatus();
         // Get the location manager
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         // Define the criteria how to select the locatioin provider -> use
@@ -178,6 +423,32 @@ public class UploadActivity extends Activity  implements LocationListener {
         } else {
             latituteField.setText("Location not available");
             longitudeField.setText("Location not available");
+        }
+        btnUpload.setText("Communicating");
+    }
+
+    public void uploadMultipart(final Context context, String file1) {
+        try {
+            File f = new File(file1);
+            String fname = f.getName();
+            String uploadId =
+                    new MultipartUploadRequest(context, "http://192.168.1.10/upload.php")
+                            .addFileToUpload(file1, "uploaded_file")
+
+
+                            .addParameter("filename", f.getName())
+                            .addParameter("name", fname)
+                            .addParameter("file_name", "temp.jpg")
+                            .addParameter("email", "ankit@sos.org.in")
+                            .addParameter("website", "sos.org.in")
+                            .addParameter("lat", latituteField.getText().toString().trim())
+                            .addParameter("lon", longitudeField.getText().toString().trim())
+                            .addParameter("accuracy", AccuracyField.getText().toString().trim())
+                            .setNotificationConfig(new UploadNotificationConfig())
+                            .setMaxRetries(2)
+                            .startUpload();
+        } catch (Exception exc) {
+            Log.e("AndroidUploadService", exc.getMessage(), exc);
         }
     }
 
@@ -208,6 +479,8 @@ public class UploadActivity extends Activity  implements LocationListener {
             imgPreview2.setRotation(90f);
             imgPreview3.setImageBitmap(bitmap);
             imgPreview3.setRotation(90f);
+            //  encrypt(path1);
+            //  encrypt(path2);
         } else {
             imgPreview.setVisibility(View.GONE);
             vidPreview.setVisibility(View.VISIBLE);
@@ -275,6 +548,15 @@ public class UploadActivity extends Activity  implements LocationListener {
         latituteField.setText(String.valueOf(lat));
         longitudeField.setText(String.valueOf(lng));
         AccuracyField.setText(accuracy);
+
+        if (Double.valueOf(location.getAccuracy()) < 10.0) {
+            btnUpload.setEnabled(true);
+            btnUpload.setText("Upload Now");
+        } else {
+            //  btnUpload.setEnabled(false);
+            btnUpload.setText("Waiting for High Accuracy");
+        }
+
     }
 
     @Override
@@ -296,96 +578,82 @@ public class UploadActivity extends Activity  implements LocationListener {
                 Toast.LENGTH_SHORT).show();
     }
 
-    /**
-     * Uploading the file to server
-     */
-    private class UploadFileToServer extends AsyncTask<Void, Integer, String> {
-        @Override
-        protected void onPreExecute() {
-            // setting progress bar to zero
-            progressBar.setProgress(0);
-            super.onPreExecute();
+    void saveFile(String stringToSave) {
+        try {
+            File file = new File(Environment.getExternalStorageDirectory()
+                    + File.separator, encryptedFileName);
+            BufferedOutputStream bos = new BufferedOutputStream(
+                    new FileOutputStream(file));
+            yourKey = generateKey();
+            byte[] filesBytes = encodeFile(yourKey, stringToSave.getBytes());
+            bos.write(filesBytes);
+            bos.flush();
+            bos.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+    }
 
-        @Override
-        protected void onProgressUpdate(Integer... progress) {
-            // Making progress bar visible
-            progressBar.setVisibility(View.VISIBLE);
+    void decodeFile(final String encryptedFileName) {
 
-            // updating progress bar value
-            progressBar.setProgress(progress[0]);
-
-            // updating percentage value
-            txtPercentage.setText(String.valueOf(progress[0]) + "%");
+        try {
+            byte[] decodedData = decodeFile(yourKey, readFile(encryptedFileName));
+            String str = new String(decodedData);
+            System.out.println("DECODED FILE CONTENTS : " + str);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+    }
 
-        @Override
-        protected String doInBackground(Void... params) {
-            return uploadFile();
-        }
+    public byte[] readFile(final String encryptedFileName) {
+        byte[] contents = null;
 
-        @SuppressWarnings("deprecation")
-        private String uploadFile() {
-            String responseString = null;
-
-            HttpClient httpclient = new DefaultHttpClient();
-            HttpPost httppost = new HttpPost(Config.FILE_UPLOAD_URL);
-
+        File file = new File(encryptedFileName);
+        int size = (int) file.length();
+        contents = new byte[size];
+        try {
+            BufferedInputStream buf = new BufferedInputStream(
+                    new FileInputStream(file));
             try {
-                AndroidMultiPartEntity entity = new AndroidMultiPartEntity(
-                        new AndroidMultiPartEntity.ProgressListener() {
-
-                            @Override
-                            public void transferred(long num) {
-                                publishProgress((int) ((num / (float) totalSize) * 100));
-                            }
-                        });
-
-                File sourceFile = new File(filePath);
-
-                // Adding file data to http body
-                entity.addPart("image", new FileBody(sourceFile));
-
-                // Extra parameters if you want to pass to server
-                entity.addPart("website",
-                        new StringBody("www.sos.org.in"));
-                entity.addPart("email", new StringBody("support@sos.org.in"));
-
-                totalSize = entity.getContentLength();
-                httppost.setEntity(entity);
-
-                // Making server call
-                HttpResponse response = httpclient.execute(httppost);
-                HttpEntity r_entity = response.getEntity();
-
-                int statusCode = response.getStatusLine().getStatusCode();
-                if (statusCode == 200) {
-                    // Server response
-                    responseString = EntityUtils.toString(r_entity);
-                } else {
-                    responseString = "Error occurred! Http Status Code: "
-                            + statusCode;
-                }
-
-            } catch (ClientProtocolException e) {
-                responseString = e.toString();
+                buf.read(contents);
+                buf.close();
             } catch (IOException e) {
-                responseString = e.toString();
+                e.printStackTrace();
             }
-
-            return responseString;
-
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
         }
+        return contents;
+    }
 
-        @Override
-        protected void onPostExecute(String result) {
-            Log.e(TAG, "Response from server: " + result);
+    public void checkNetworkStatus() {
 
-            // showing the server response in an alert dialog
-            showAlert(result);
+        final ConnectivityManager connMgr = (ConnectivityManager)
+                this.getSystemService(Context.CONNECTIVITY_SERVICE);
 
-            super.onPostExecute(result);
+        final android.net.NetworkInfo wifi =
+                connMgr.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+
+        final android.net.NetworkInfo mobile =
+                connMgr.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
+
+        if (wifi.isAvailable()) {
+
+            Toast.makeText(this, "Wifi", Toast.LENGTH_LONG).show();
+        } else if (mobile.isAvailable()) {
+
+            Toast.makeText(this, "Mobile 3G ", Toast.LENGTH_LONG).show();
+        } else {
+
+            Toast.makeText(this, "No Network ", Toast.LENGTH_LONG).show();
         }
 
     }
+
+
+
 }

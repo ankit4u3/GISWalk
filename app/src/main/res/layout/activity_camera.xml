@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
 
     android:baselineAligned="false"
-    android:orientation="vertical" >
+    android:orientation="vertical">
 
     <LinearLayout
         android:id="@+id/linearLayout"
@@ -35,7 +34,7 @@
 
             android:paddingLeft="20dp"
             android:paddingRight="20dp"
-            android:text="PICTURE"
+            android:text="External Camera"
             />
 
         <Button
@@ -47,7 +46,7 @@
             android:layout_weight="1.55"
             android:paddingLeft="20dp"
             android:paddingRight="20dp"
-            android:text="RECORD VIDEO" />
+            android:text="0/2 Image" />
 
         <!-- Record video button -->
 

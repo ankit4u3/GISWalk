@@ -44,6 +44,7 @@ public class MainActivity extends AppCompatActivity  {
                 startNewActivity(web[+ position]);
             }
         });
+        new App();
 
     }
     public void startNewActivity(String uActivity)

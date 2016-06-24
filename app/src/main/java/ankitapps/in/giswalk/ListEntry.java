@@ -2,8 +2,8 @@ package ankitapps.in.giswalk;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
@@ -14,20 +14,18 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class ListEntry extends AppCompatActivity {
-    DBHelper db;
+    public static final String FIRST_COLUMN = "First";
     ///////////////////////
-
+    public static final String SECOND_COLUMN = "Second";
+    public static final String THIRD_COLUMN = "Third";
+    public static final String FOURTH_COLUMN = "Fourth";
     public ArrayList<HashMap<String, String>> list;
+    DBHelper db;
     Activity activity;
     TextView txtFirst;
     TextView txtSecond;
     TextView txtThird;
     TextView txtFourth;
-
-    public static final String FIRST_COLUMN="First";
-    public static final String SECOND_COLUMN="Second";
-    public static final String THIRD_COLUMN="Third";
-    public static final String FOURTH_COLUMN="Fourth";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,5 +64,6 @@ public class ListEntry extends AppCompatActivity {
         i.putExtra("address", id);
 
         startActivity(i);
+        this.finish();
     }
 }
